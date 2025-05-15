@@ -1,4 +1,3 @@
-// MainWindow.axaml.cs
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -33,16 +32,21 @@ namespace Vosmerka
             UpdateDisplay();
         }
 
+        
+        
         public class ProductPresenter : Product
         {
             public decimal CalculatedCost { get; set; }
             
+            //Создаем список материалов
             public string MaterialsList => string.Join(", ", 
                 ProductMaterials?
                     .Where(pm => pm?.Material != null)
                     .Select(pm => pm.Material.Title) 
                 ?? Enumerable.Empty<string>());
             
+            
+            //Отрисовываем картинку с помощью Bitmap
             public Bitmap ProductImage 
             {
                 get
@@ -66,6 +70,8 @@ namespace Vosmerka
             }
         }
 
+        
+        //Подгруджаем продукты и соответствующие поля
         private void LoadProducts()
         {
             try
@@ -205,6 +211,8 @@ namespace Vosmerka
             UpdatePaginationControls();
         }
 
+        
+        //Пагинация
         private void UpdatePaginationControls()
         {
             pageCount = (int)Math.Ceiling(filteredProducts.Count / (double)pageSize);

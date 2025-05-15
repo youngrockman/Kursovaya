@@ -20,18 +20,25 @@
 
         
         <StackPanel Grid.Row="0" Margin="0 0 0 20" Spacing="10">
-            <TextBox x:Name="SearchBox" Watermark="Введите для поиска..." 
-                     Width="400" HorizontalAlignment="Left"/>
-            
-            <StackPanel Orientation="Horizontal" Spacing="10">
-                <ComboBox x:Name="FilterBox" Width="200"
-                          SelectedIndex="0"/>
-                <ComboBox x:Name="SortBox" Width="200"
-                          SelectedIndex="0"/>
-                <ComboBox x:Name="SortOrderBox" Width="200"
-                          SelectedIndex="0"/>
+            <TextBox x:Name="SearchBox" 
+                     Watermark="Введите для поиска" 
+                     Width="400" 
+                     HorizontalAlignment="Left"
+                     TextChanged="SearchBox_TextChanged"/>
+
+            <ComboBox x:Name="FilterBox" 
+                      Width="200"
+                      SelectionChanged="FilterBox_SelectionChanged"/> 
+
+            <ComboBox x:Name="SortBox" 
+                      Width="200"
+                      SelectionChanged="SortBox_SelectionChanged"/> 
+
+            <ComboBox x:Name="SortOrderBox" 
+                      Width="200"
+                      SelectionChanged="SortOrderBox_SelectionChanged"/> 
             </StackPanel>
-        </StackPanel>
+        
 
         
         <ScrollViewer Grid.Row="1">
