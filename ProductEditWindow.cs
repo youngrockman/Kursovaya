@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using Avalonia.Data;
 using Vosmerka.Models;
 using Vosmerka.Tools;
@@ -34,21 +35,26 @@ namespace Vosmerka
         public ProductEditWindow()
         {
             InitializeComponent();
-            LoadData();
+            LoadDataAsync();
         }
 
         public ProductEditWindow(Product product) : this()
         {
             _product = product;
             IsEditMode = true;
-            LoadProductData();
+            Loaded += async (_, _) =>
+            {
+                await LoadDataAsync();
+                LoadProductData(); 
+            };
         }
 
-        private async void LoadData()
+        private async Task LoadDataAsync()
         {
             try
             {
                 using var context = new User6Context();
+
                 var productTypes = await context.ProductTypes.ToListAsync();
                 ProductTypeBox.ItemsSource = productTypes;
                 ProductTypeBox.DisplayMemberBinding = new Binding("Title");
@@ -63,6 +69,7 @@ namespace Vosmerka
                         .Include(pm => pm.Material)
                         .Where(pm => pm.ProductId == _product.Id)
                         .ToListAsync();
+
                     MaterialsGrid.ItemsSource = _productMaterials;
                 }
             }
@@ -71,6 +78,7 @@ namespace Vosmerka
                 Console.WriteLine($"Ошибка загрузки данных: {ex.Message}");
             }
         }
+
 
         private void LoadProductData()
         {
