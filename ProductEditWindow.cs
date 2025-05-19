@@ -10,6 +10,7 @@ using System.IO;
 using System.Linq;
 using Avalonia.Data;
 using Vosmerka.Models;
+using Vosmerka.Tools;
 
 namespace Vosmerka
 {
@@ -48,20 +49,16 @@ namespace Vosmerka
             try
             {
                 using var context = new User6Context();
-                
-               
                 var productTypes = await context.ProductTypes.ToListAsync();
                 ProductTypeBox.ItemsSource = productTypes;
                 ProductTypeBox.DisplayMemberBinding = new Binding("Title");
-                
-                
+
                 var materials = await context.Materials.Include(m => m.MaterialType).ToListAsync();
                 MaterialsComboBox.ItemsSource = materials;
                 MaterialsComboBox.DisplayMemberBinding = new Binding("Title");
 
                 if (_product != null)
                 {
-                    
                     _productMaterials = await context.ProductMaterials
                         .Include(pm => pm.Material)
                         .Where(pm => pm.ProductId == _product.Id)
@@ -86,8 +83,6 @@ namespace Vosmerka
                 ? (decimal?)Convert.ToDouble(_product.MinCostForAgent.Value)
                 : null;
 
-
-            
             if (_product.ProductTypeId != null)
             {
                 foreach (var item in ProductTypeBox.Items)
@@ -100,7 +95,6 @@ namespace Vosmerka
                 }
             }
 
-      
             if (!string.IsNullOrEmpty(_product.Image))
             {
                 try
@@ -137,23 +131,37 @@ namespace Vosmerka
             }
         }
 
-        private void AddMaterial_Click(object sender, RoutedEventArgs e)
+        private async void AddMaterial_Click(object sender, RoutedEventArgs e)
         {
             if (MaterialsComboBox.SelectedItem is Material selectedMaterial)
             {
-                if (!_productMaterials.Any(pm => pm.MaterialId == selectedMaterial.Id))
+                
+                if (_productMaterials.Any(pm => pm.MaterialId == selectedMaterial.Id))
                 {
-                    var productMaterial = new ProductMaterial
-                    {
-                        Material = selectedMaterial,
-                        MaterialId = selectedMaterial.Id,
-                        Count = 1
-                    };
-
-                    _productMaterials.Add(productMaterial);
-                    MaterialsGrid.ItemsSource = null;
-                    MaterialsGrid.ItemsSource = _productMaterials;
+                    await MessageBox.Show(this, "Этот материал уже добавлен", "Ошибка");
+                    return;
                 }
+
+                
+                var dialog = new NumericInputDialog("Введите количество:");
+                var quantity = await dialog.ShowDialog<double?>(this);
+        
+                if (quantity == null || quantity <= 0)
+                {
+                    await MessageBox.Show(this, "Введите корректное количество", "Ошибка");
+                    return;
+                }
+
+                var productMaterial = new ProductMaterial
+                {
+                    Material = selectedMaterial,
+                    MaterialId = selectedMaterial.Id,
+                    Count = quantity.Value
+                };
+
+                _productMaterials.Add(productMaterial);
+                MaterialsGrid.ItemsSource = null;
+                MaterialsGrid.ItemsSource = _productMaterials;
             }
         }
 
@@ -168,156 +176,138 @@ namespace Vosmerka
         }
 
         private async void Save_Click(object sender, RoutedEventArgs e)
-{
-    if (string.IsNullOrWhiteSpace(ArticleNumberBox.Text))
-    {
-        await MessageBox.Show(this, "Артикул не может быть пустым", "Ошибка");
-        return;
-    }
-
-    if (string.IsNullOrWhiteSpace(TitleBox.Text))
-    {
-        await MessageBox.Show(this, "Наименование не может быть пустым", "Ошибка");
-        return;
-    }
-
-    try
-    {
-        using var context = new User6Context();
-
-        
-        if (!IsEditMode || 
-            (IsEditMode && _product.ArticleNumber != ArticleNumberBox.Text))
         {
-            bool articleExists = await context.Products
-                .AnyAsync(p => p.ArticleNumber == ArticleNumberBox.Text);
-            
-            if (articleExists)
+            if (string.IsNullOrWhiteSpace(ArticleNumberBox.Text))
             {
-                await MessageBox.Show(this, "Продукт с таким артикулом уже существует", "Ошибка");
+                await MessageBox.Show(this, "Артикул не может быть пустым", "Ошибка");
                 return;
             }
-        }
 
-        
-        string? imageRelativePath = null;
-        if (!string.IsNullOrEmpty(_imagePath))
-        {
-            var imagesDir = Path.Combine(AppContext.BaseDirectory, "Images");
-            if (!Directory.Exists(imagesDir))
-                Directory.CreateDirectory(imagesDir);
-
-            var ext = Path.GetExtension(_imagePath);
-            var newFileName = $"{Guid.NewGuid()}{ext}";
-            var destPath = Path.Combine(imagesDir, newFileName);
-
-            File.Copy(_imagePath, destPath, true);
-            imageRelativePath = Path.Combine("Images", newFileName);
-        }
-
-        if (IsEditMode)
-        {
-            
-            var dbProduct = await context.Products
-                .Include(p => p.ProductMaterials)
-                .FirstOrDefaultAsync(p => p.Id == _product.Id);
-
-            if (dbProduct != null)
+            if (string.IsNullOrWhiteSpace(TitleBox.Text))
             {
-                dbProduct.ArticleNumber = ArticleNumberBox.Text;
-                dbProduct.Title = TitleBox.Text;
-                dbProduct.Description = DescriptionBox.Text;
-                dbProduct.ProductionPersonCount = (int)PersonCountBox.Value;
-                dbProduct.ProductionWorkshopNumber = (int)WorkshopNumberBox.Value;
-                
-              
-                dbProduct.MinCostForAgent = MinCostBox.Value.HasValue 
-                    ? Convert.ToDecimal(MinCostBox.Value.Value) 
-                    : (decimal?)null;
+                await MessageBox.Show(this, "Наименование не может быть пустым", "Ошибка");
+                return;
+            }
 
-                dbProduct.ProductTypeId = (ProductTypeBox.SelectedItem as ProductType)?.Id;
+            if (ProductTypeBox.SelectedItem is not ProductType selectedType)
+            {
+                await MessageBox.Show(this, "Выберите тип продукта", "Ошибка");
+                return;
+            }
 
-                if (imageRelativePath != null)
-                    dbProduct.Image = imageRelativePath;
+            try
+            {
+                using var context = new User6Context();
 
-              
-                context.ProductMaterials.RemoveRange(dbProduct.ProductMaterials);
-
-          
-                foreach (var pm in _productMaterials)
+                if (!IsEditMode || (_product.ArticleNumber != ArticleNumberBox.Text))
                 {
-                    context.ProductMaterials.Add(new ProductMaterial
+                    bool articleExists = await context.Products
+                        .AnyAsync(p => p.ArticleNumber == ArticleNumberBox.Text);
+                    if (articleExists)
                     {
-                        ProductId = dbProduct.Id,
-                        MaterialId = pm.MaterialId,
-                        Count = pm.Count
-                    });
+                        await MessageBox.Show(this, "Продукт с таким артикулом уже существует", "Ошибка");
+                        return;
+                    }
                 }
 
-                await context.SaveChangesAsync();
-            }
-        }
-        else
-        {
-            
-            var newProduct = new Product
-            {
-                ArticleNumber = ArticleNumberBox.Text,
-                Title = TitleBox.Text,
-                Description = DescriptionBox.Text,
-                ProductionPersonCount = (int)PersonCountBox.Value,
-                ProductionWorkshopNumber = (int)WorkshopNumberBox.Value,
-                MinCostForAgent = MinCostBox.Value.HasValue 
-                    ? Convert.ToDecimal(MinCostBox.Value.Value) 
-                    : (decimal?)null,
-                ProductTypeId = (ProductTypeBox.SelectedItem as ProductType)?.Id,
-                Image = imageRelativePath
-            };
-
-            context.Products.Add(newProduct);
-            await context.SaveChangesAsync();
-
-            
-            foreach (var pm in _productMaterials)
-            {
-                context.ProductMaterials.Add(new ProductMaterial
+                string? imageRelativePath = null;
+                if (!string.IsNullOrEmpty(_imagePath))
                 {
-                    ProductId = newProduct.Id,
-                    MaterialId = pm.MaterialId,
-                    Count = pm.Count
-                });
+                    var imagesDir = Path.Combine(AppContext.BaseDirectory, "Images");
+                    if (!Directory.Exists(imagesDir))
+                        Directory.CreateDirectory(imagesDir);
+
+                    var ext = Path.GetExtension(_imagePath);
+                    var newFileName = $"{Guid.NewGuid()}{ext}";
+                    var destPath = Path.Combine(imagesDir, newFileName);
+                    File.Copy(_imagePath, destPath, true);
+                    imageRelativePath = Path.Combine("Images", newFileName);
+                }
+
+                if (IsEditMode)
+                {
+                    var dbProduct = await context.Products
+                        .Include(p => p.ProductMaterials)
+                        .FirstOrDefaultAsync(p => p.Id == _product.Id);
+
+                    if (dbProduct != null)
+                    {
+                        dbProduct.ArticleNumber = ArticleNumberBox.Text;
+                        dbProduct.Title = TitleBox.Text;
+                        dbProduct.Description = DescriptionBox.Text;
+                        dbProduct.ProductionPersonCount = (int)PersonCountBox.Value;
+                        dbProduct.ProductionWorkshopNumber = (int)WorkshopNumberBox.Value;
+                        dbProduct.MinCostForAgent = MinCostBox.Value.HasValue
+                            ? Convert.ToDecimal(MinCostBox.Value.Value)
+                            : (decimal?)null;
+                        dbProduct.ProductTypeId = selectedType.Id;
+                        if (imageRelativePath != null)
+                            dbProduct.Image = imageRelativePath;
+
+                        context.ProductMaterials.RemoveRange(dbProduct.ProductMaterials);
+                        foreach (var pm in _productMaterials)
+                        {
+                            context.ProductMaterials.Add(new ProductMaterial
+                            {
+                                ProductId = dbProduct.Id,
+                                MaterialId = pm.MaterialId,
+                                Count = pm.Count
+                            });
+                        }
+                        await context.SaveChangesAsync();
+                    }
+                }
+                else
+                {
+                    var newProduct = new Product
+                    {
+                        ArticleNumber = ArticleNumberBox.Text,
+                        Title = TitleBox.Text,
+                        Description = DescriptionBox.Text,
+                        ProductionPersonCount = (int)PersonCountBox.Value,
+                        ProductionWorkshopNumber = (int)WorkshopNumberBox.Value,
+                        MinCostForAgent = MinCostBox.Value.HasValue
+                            ? Convert.ToDecimal(MinCostBox.Value.Value)
+                            : (decimal?)null,
+                        ProductTypeId = selectedType.Id,
+                        Image = imageRelativePath
+                    };
+
+                    context.Products.Add(newProduct);
+                    await context.SaveChangesAsync();
+
+                    foreach (var pm in _productMaterials)
+                    {
+                        context.ProductMaterials.Add(new ProductMaterial
+                        {
+                            ProductId = newProduct.Id,
+                            MaterialId = pm.MaterialId,
+                            Count = pm.Count
+                        });
+                    }
+                    await context.SaveChangesAsync();
+                }
+
+                Close(true);
             }
-
-            await context.SaveChangesAsync();
+            catch (Exception ex)
+            {
+                await MessageBox.Show(this, $"Ошибка сохранения: {ex.Message}", "Ошибка");
+            }
         }
-
-        Close(true);
-    }
-    catch (Exception ex)
-    {
-        await MessageBox.Show(this, $"Ошибка сохранения: {ex.Message}", "Ошибка");
-    }
-}
 
         private async void Delete_Click(object sender, RoutedEventArgs e)
         {
             try
             {
                 using var context = new User6Context();
-                
-                
-                bool hasSales = await context.ProductSales
-                    .AnyAsync(ps => ps.ProductId == _product.Id);
-                
+                bool hasSales = await context.ProductSales.AnyAsync(ps => ps.ProductId == _product.Id);
                 if (hasSales)
                 {
-                    await MessageBox.Show(this, 
-                        "Невозможно удалить продукт, так как есть информация о его продажах", 
-                        "Ошибка удаления");
+                    await MessageBox.Show(this, "Невозможно удалить продукт, так как есть информация о его продажах", "Ошибка удаления");
                     return;
                 }
 
-               
                 var productToDelete = await context.Products
                     .Include(p => p.ProductMaterials)
                     .Include(p => p.ProductCostHistories)
@@ -325,6 +315,8 @@ namespace Vosmerka
 
                 if (productToDelete != null)
                 {
+                    
+                    context.ProductMaterials.RemoveRange(productToDelete.ProductMaterials);
                     context.Products.Remove(productToDelete);
                     await context.SaveChangesAsync();
                     Close(true);
@@ -340,5 +332,20 @@ namespace Vosmerka
         {
             Close(false);
         }
+        
+        private void MaterialsGrid_CellEditEnding(object? sender, DataGridCellEditEndingEventArgs e)
+        {
+            if (e.EditAction == DataGridEditAction.Commit && 
+                e.Column.Header.ToString() == "Количество" &&
+                e.EditingElement is TextBox textBox)
+            {
+                if (!double.TryParse(textBox.Text, out double value) || value <= 0)
+                {
+                    e.Cancel = true;
+                    MessageBox.Show(this, "Введите положительное числовое значение", "Ошибка");
+                }
+            }
+        }
+        
     }
 }
