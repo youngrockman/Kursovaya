@@ -79,7 +79,7 @@
                 <ColumnDefinition Width="Auto"/>
             </Grid.ColumnDefinitions>
             <ComboBox Grid.Column="0" x:Name="MaterialsComboBox" IsTextSearchEnabled="True"/>
-            <Button Grid.Column="1" Content="Добавить" Margin="10,0,0,0" Click="AddMaterial_Click"/>
+            <Button Grid.Column="1" Content="Добавить" Background="#A163F5" Margin="10,0,0,0" Click="AddMaterial_Click"/>
         </Grid>
 
        
@@ -99,7 +99,7 @@
                 <DataGridTemplateColumn Header="Удалить" Width="80">
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>
-                            <Button Content="✖" Background="IndianRed" Foreground="White" Click="RemoveMaterial_Click"/>
+                            <Button Content="✖" Background="#A163F5" Foreground="White" Click="RemoveMaterial_Click"/>
                         </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>
@@ -108,9 +108,9 @@
 
        
         <StackPanel Grid.Row="12" Orientation="Horizontal" HorizontalAlignment="Right" Spacing="10">
-            <Button Content="Сохранить" Width="100" Click="Save_Click"/>
-            <Button x:Name="DeleteButton" Content="Удалить" Width="100" Click="Delete_Click" IsVisible="False"/>
-            <Button Content="Отмена" Width="100" Click="Cancel_Click"/>
+            <Button Content="Сохранить" Width="100" Click="Save_Click" Background="#A163F5"/>
+            <Button x:Name="DeleteButton" Content="Удалить" Width="100" Click="Delete_Click" IsVisible="False" Background="#A163F5"/>
+            <Button Content="Отмена" Width="100" Click="Cancel_Click" Background="#A163F5"/>
         </StackPanel>
     </Grid>
 </Window>

@@ -11,6 +11,8 @@ namespace Vosmerka.Converters
         public IBrush? TrueValue { get; set; }
         public IBrush? FalseValue { get; set; }
 
+        
+        // Флаги для преключения значений с true на false
         public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
         {
             if (value is bool b)

@@ -44,7 +44,7 @@
                       Width="200"
                       SelectionChanged="SortOrderBox_SelectionChanged"/> 
             
-            <Button Content="Добавить продукт" Click="AddButton_Click" Margin="0,0,10,0"/>
+            <Button Content="Добавить продукт" Click="AddButton_Click" Margin="0,0,10,0" Background="#A163F5"/>
         </StackPanel>
 
         <ScrollViewer Grid.Row="1">
@@ -125,7 +125,7 @@
                   Spacing="5">
             <Button Content="←" Click="PrevPage_Click" 
                     Width="35" FontWeight="Bold"
-                    Background="Transparent" BorderThickness="0"/>
+                    Background="#A163F5" BorderThickness="0"/>
             
             <ItemsControl x:Name="PaginationPanel">
                 <ItemsControl.ItemsPanel>
@@ -137,7 +137,7 @@
             
             <Button Content="→" Click="NextPage_Click" 
                     Width="35" FontWeight="Bold"
-                    Background="Transparent" BorderThickness="0"/>
+                    Background="#A163F5" BorderThickness="0"/>
         </StackPanel>
     </Grid>
 </Window>

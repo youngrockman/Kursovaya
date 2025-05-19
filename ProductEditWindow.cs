@@ -118,6 +118,7 @@ namespace Vosmerka
             }
         }
 
+        //Выбор картинки
         private async void SelectImage_Click(object sender, RoutedEventArgs e)
         {
             var dialog = new OpenFileDialog();
@@ -139,6 +140,8 @@ namespace Vosmerka
             }
         }
 
+        
+        //Добавление материала
         private async void AddMaterial_Click(object sender, RoutedEventArgs e)
         {
             if (MaterialsComboBox.SelectedItem is Material selectedMaterial)
@@ -173,6 +176,8 @@ namespace Vosmerka
             }
         }
 
+        
+        // Для очистки материала
         private void RemoveMaterial_Click(object sender, RoutedEventArgs e)
         {
             if (sender is Button button && button.DataContext is ProductMaterial material)

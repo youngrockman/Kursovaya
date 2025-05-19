@@ -2,6 +2,7 @@
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
+using Avalonia.Media;
 
 namespace Vosmerka
 {
@@ -10,6 +11,10 @@ namespace Vosmerka
         public MessageBox()
         {
             InitializeComponent();
+            
+            this.Title = "Сообщение об ошибке";
+        
+            this.Icon = new WindowIcon("C:\\Users\\IVAN\\RiderProjects\\Vosmerka\\Vosmerka\\bin\\Debug\\net9.0\\vosmerka.ico");
         }
 
         private void InitializeComponent()
@@ -17,6 +22,10 @@ namespace Vosmerka
             //AvaloniaXamlLoader.Load(this);
         }
 
+        
+        
+        
+        // Вывод MessageBox
         public static async Task Show(Window parent, string message, string title)
         {
             var msgBox = new MessageBox
@@ -35,7 +44,8 @@ namespace Vosmerka
             {
                 Content = "OK",
                 Width = 100,
-                Margin = new Thickness(10)
+                Margin = new Thickness(10),
+                Background = new SolidColorBrush(Color.Parse("#A163F5"))
             };
 
             button.Click += (s, e) => msgBox.Close();

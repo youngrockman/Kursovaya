@@ -13,8 +13,14 @@ public class NumericInputDialog : Window
     public NumericInputDialog(string prompt)
     {
         InitializeComponent(prompt);
+        
+        this.Title = "Выбор количетсва материала";
+        
+        this.Icon = new WindowIcon("C:\\Users\\IVAN\\RiderProjects\\Vosmerka\\Vosmerka\\bin\\Debug\\net9.0\\vosmerka.ico");
     }
 
+    
+    // Задаем количество выбранного материала
     private void InitializeComponent(string prompt)
     {
         Width = 300;

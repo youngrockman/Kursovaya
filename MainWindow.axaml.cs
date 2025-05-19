@@ -88,7 +88,8 @@ namespace Vosmerka
         {
             Content = "Изменить стоимость на...",
             Margin = new Thickness(0, 0, 10, 0),
-            IsVisible = false
+            IsVisible = false,
+            Background = new SolidColorBrush(Color.Parse("#A163F5"))
         };
         _changeCostButton.Click += ChangeCostButton_Click;
         
