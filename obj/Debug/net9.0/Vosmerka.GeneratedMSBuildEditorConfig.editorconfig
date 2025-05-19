@@ -37,3 +37,6 @@ build_metadata.AdditionalFiles.SourceItemGroup = AvaloniaXaml
 
 [C:/Users/IVAN/RiderProjects/Vosmerka/Vosmerka/MainWindow.axaml]
 build_metadata.AdditionalFiles.SourceItemGroup = AvaloniaXaml
+
+[C:/Users/IVAN/RiderProjects/Vosmerka/Vosmerka/ProductEditWindow.axaml]
+build_metadata.AdditionalFiles.SourceItemGroup = AvaloniaXaml

@@ -13,6 +13,7 @@ using Avalonia.Media.Imaging;
 using Microsoft.EntityFrameworkCore;
 using Vosmerka.Models;
 using Avalonia.Data.Converters;
+using Avalonia.Input;
 
 namespace Vosmerka
 {
@@ -41,6 +42,44 @@ namespace Vosmerka
             ProductListBox.SelectionChanged += ProductListBox_SelectionChanged;
             
         }
+        
+        private async void AddButton_Click(object sender, RoutedEventArgs e)
+        {
+            var editWindow = new ProductEditWindow();
+            var result = await editWindow.ShowDialog<bool>(this);
+    
+            if (result)
+            {
+                LoadProducts();
+                UpdateDisplay();
+            }
+        }
+        
+        
+        private async void ProductListBox_DoubleTapped(object sender, TappedEventArgs e)
+{
+    if (ProductListBox.SelectedItem is ProductPresenter selectedProduct)
+    {
+        using var context = new User6Context();
+        var product = await context.Products
+            .Include(p => p.ProductMaterials)
+            .FirstOrDefaultAsync(p => p.Id == selectedProduct.Id);
+        
+        if (product != null)
+        {
+            var editWindow = new ProductEditWindow(product);
+            var result = await editWindow.ShowDialog<bool>(this);
+            
+            if (result)
+            {
+                LoadProducts();
+                UpdateDisplay();
+            }
+        }
+    }
+}
+        
+        
         
         
         private void InitializeChangeCostButton()
@@ -77,7 +116,7 @@ namespace Vosmerka
         if (!selectedProducts.Any()) return;
 
         
-        decimal averageCost = selectedProducts.Average(p => p.MinCostForAgent);
+        decimal averageCost = (decimal)selectedProducts.Average(p => p.MinCostForAgent);
 
         var dialog = new ChangeCostDialog(averageCost);
         var result = await dialog.ShowDialog<bool>(this);
@@ -176,17 +215,19 @@ namespace Vosmerka
 
         
         //Подгруджаем продукты и соответствующие поля
-        private void LoadProducts()
+        private async void LoadProducts()
         {
             try
             {
                 using var context = new User6Context();
-                allProducts = context.Products
+                var productsFromDb = await context.Products
                     .Include(p => p.ProductType)
                     .Include(p => p.ProductMaterials)
-                        .ThenInclude(pm => pm.Material)
+                    .ThenInclude(pm => pm.Material)
                     .Include(p => p.ProductSales)
-                    .AsEnumerable()
+                    .ToListAsync();
+
+                allProducts = productsFromDb
                     .Select(p => new ProductPresenter
                     {
                         Id = p.Id,
@@ -208,6 +249,11 @@ namespace Vosmerka
             catch (Exception ex)
             {
                 Console.WriteLine($"Ошибка загрузки продуктов: {ex.Message}");
+                
+            }
+            finally
+            {
+                UpdateDisplay();
             }
         }
 

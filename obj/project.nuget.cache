@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "dgSpecHash": "YjUkY+2rmf4=",
+  "dgSpecHash": "DSSIzPSr7mI=",
   "success": true,
   "projectFilePath": "C:\\Users\\IVAN\\RiderProjects\\Vosmerka\\Vosmerka\\Vosmerka.csproj",
   "expectedPackageFiles": [
@@ -8,6 +8,7 @@
     "C:\\Users\\IVAN\\.nuget\\packages\\avalonia.angle.windows.natives\\2.1.22045.20230930\\avalonia.angle.windows.natives.2.1.22045.20230930.nupkg.sha512",
     "C:\\Users\\IVAN\\.nuget\\packages\\avalonia.buildservices\\0.0.31\\avalonia.buildservices.0.0.31.nupkg.sha512",
     "C:\\Users\\IVAN\\.nuget\\packages\\avalonia.controls.colorpicker\\11.3.0\\avalonia.controls.colorpicker.11.3.0.nupkg.sha512",
+    "C:\\Users\\IVAN\\.nuget\\packages\\avalonia.controls.datagrid\\11.3.0\\avalonia.controls.datagrid.11.3.0.nupkg.sha512",
     "C:\\Users\\IVAN\\.nuget\\packages\\avalonia.desktop\\11.3.0\\avalonia.desktop.11.3.0.nupkg.sha512",
     "C:\\Users\\IVAN\\.nuget\\packages\\avalonia.diagnostics\\11.3.0\\avalonia.diagnostics.11.3.0.nupkg.sha512",
     "C:\\Users\\IVAN\\.nuget\\packages\\avalonia.fonts.inter\\11.3.0\\avalonia.fonts.inter.11.3.0.nupkg.sha512",

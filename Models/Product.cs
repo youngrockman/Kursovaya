@@ -21,7 +21,7 @@ public partial class Product
 
     public int? ProductionWorkshopNumber { get; set; }
 
-    public decimal MinCostForAgent { get; set; }
+    public decimal? MinCostForAgent { get; set; }
 
     public virtual ICollection<ProductCostHistory> ProductCostHistories { get; set; } = new List<ProductCostHistory>();
 
