@@ -25,4 +25,10 @@
         </PackageReference>
         <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="9.0.1" />
     </ItemGroup>
+
+    <ItemGroup>
+      <Compile Update="ChangeCostDialog.axaml.cs">
+        <DependentUpon>ChangeCostDialog.axaml.axaml</DependentUpon>
+      </Compile>
+    </ItemGroup>
 </Project>

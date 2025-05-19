@@ -1,8 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
@@ -10,6 +12,7 @@ using Avalonia.Media;
 using Avalonia.Media.Imaging;
 using Microsoft.EntityFrameworkCore;
 using Vosmerka.Models;
+using Avalonia.Data.Converters;
 
 namespace Vosmerka
 {
@@ -21,6 +24,9 @@ namespace Vosmerka
         private const int pageSize = 20;
         private int currentPage = 1;
         private int pageCount = 0;
+        
+        private Button _changeCostButton;
+
 
         public MainWindow()
         {
@@ -30,12 +36,110 @@ namespace Vosmerka
             InitializeFilters();
             InitializeSorting();
             UpdateDisplay();
+            InitializeChangeCostButton();
+            
+            ProductListBox.SelectionChanged += ProductListBox_SelectionChanged;
+            
         }
+        
+        
+        private void InitializeChangeCostButton()
+    {
+        _changeCostButton = new Button
+        {
+            Content = "Изменить стоимость на...",
+            Margin = new Thickness(0, 0, 10, 0),
+            IsVisible = false
+        };
+        _changeCostButton.Click += ChangeCostButton_Click;
+        
+        
+        var topPanel = this.FindControl<StackPanel>("TopPanel");
+        topPanel.Children.Add(_changeCostButton);
+    }
+
+        private void ProductListBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            // Обновить состояние IsSelected для всех продуктов
+            foreach (var product in products)
+            {
+                product.IsSelected = ProductListBox.SelectedItems.Contains(product);
+            }
+    
+            // Показать/скрыть кнопку изменения стоимости
+            _changeCostButton.IsVisible = ProductListBox.SelectedItems?.Count > 0;
+        }
+
+
+    private async void ChangeCostButton_Click(object sender, RoutedEventArgs e)
+    {
+        var selectedProducts = products.Where(p => p.IsSelected).ToList();
+        if (!selectedProducts.Any()) return;
+
+        
+        decimal averageCost = selectedProducts.Average(p => p.MinCostForAgent);
+
+        var dialog = new ChangeCostDialog(averageCost);
+        var result = await dialog.ShowDialog<bool>(this);
+
+        if (result)
+        {
+            decimal newCost = dialog.NewCost;
+            await UpdateProductsCost(selectedProducts, newCost);
+        }
+    }
+
+    private async Task UpdateProductsCost(List<ProductPresenter> productsToUpdate, decimal newCost)
+    {
+        try
+        {
+            using var context = new User6Context();
+            
+            
+            var productIds = productsToUpdate.Select(p => p.Id).ToList();
+            
+            
+            var dbProducts = await context.Products
+                .Where(p => productIds.Contains(p.Id))
+                .ToListAsync();
+
+          
+            foreach (var product in dbProducts)
+            {
+                product.MinCostForAgent = newCost;
+                
+                //Изменяем историю продукции
+                context.ProductCostHistories.Add(new ProductCostHistory
+                {
+                    ProductId = product.Id,
+                    ChangeDate = DateTime.Now,
+                    CostValue = newCost
+                });
+            }
+
+            await context.SaveChangesAsync();
+            
+            
+            foreach (var presenter in productsToUpdate)
+            {
+                presenter.MinCostForAgent = newCost;
+            }
+
+            
+            UpdateDisplay();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error updating product costs: {ex.Message}");
+            
+        }
+    }
 
         
         
         public class ProductPresenter : Product
         {
+            public bool IsSelected { get; set; }
             public decimal CalculatedCost { get; set; }
             
             //Создаем список материалов
@@ -257,5 +361,7 @@ namespace Vosmerka
         private void FilterBox_SelectionChanged(object sender, SelectionChangedEventArgs e) => ApplyFilters();
         private void SortBox_SelectionChanged(object sender, SelectionChangedEventArgs e) => ApplyFilters();
         private void SortOrderBox_SelectionChanged(object sender, SelectionChangedEventArgs e) => ApplyFilters();
+        
+        
     }
 }
