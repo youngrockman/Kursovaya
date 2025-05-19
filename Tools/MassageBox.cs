@@ -14,7 +14,7 @@ namespace Vosmerka
 
         private void InitializeComponent()
         {
-            AvaloniaXamlLoader.Load(this);
+            //AvaloniaXamlLoader.Load(this);
         }
 
         public static async Task Show(Window parent, string message, string title)

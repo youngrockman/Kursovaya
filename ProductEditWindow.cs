@@ -141,7 +141,6 @@ namespace Vosmerka
         {
             if (MaterialsComboBox.SelectedItem is Material selectedMaterial)
             {
-               
                 if (!_productMaterials.Any(pm => pm.MaterialId == selectedMaterial.Id))
                 {
                     var productMaterial = new ProductMaterial
@@ -200,7 +199,7 @@ namespace Vosmerka
             }
         }
 
-       
+        
         string? imageRelativePath = null;
         if (!string.IsNullOrEmpty(_imagePath))
         {
@@ -218,7 +217,7 @@ namespace Vosmerka
 
         if (IsEditMode)
         {
-          
+            
             var dbProduct = await context.Products
                 .Include(p => p.ProductMaterials)
                 .FirstOrDefaultAsync(p => p.Id == _product.Id);
@@ -231,7 +230,7 @@ namespace Vosmerka
                 dbProduct.ProductionPersonCount = (int)PersonCountBox.Value;
                 dbProduct.ProductionWorkshopNumber = (int)WorkshopNumberBox.Value;
                 
-                
+              
                 dbProduct.MinCostForAgent = MinCostBox.Value.HasValue 
                     ? Convert.ToDecimal(MinCostBox.Value.Value) 
                     : (decimal?)null;
@@ -241,10 +240,10 @@ namespace Vosmerka
                 if (imageRelativePath != null)
                     dbProduct.Image = imageRelativePath;
 
-                
+              
                 context.ProductMaterials.RemoveRange(dbProduct.ProductMaterials);
 
-             
+          
                 foreach (var pm in _productMaterials)
                 {
                     context.ProductMaterials.Add(new ProductMaterial
@@ -268,7 +267,6 @@ namespace Vosmerka
                 Description = DescriptionBox.Text,
                 ProductionPersonCount = (int)PersonCountBox.Value,
                 ProductionWorkshopNumber = (int)WorkshopNumberBox.Value,
-                // Fix for decimal conversion
                 MinCostForAgent = MinCostBox.Value.HasValue 
                     ? Convert.ToDecimal(MinCostBox.Value.Value) 
                     : (decimal?)null,
@@ -279,7 +277,7 @@ namespace Vosmerka
             context.Products.Add(newProduct);
             await context.SaveChangesAsync();
 
-           
+            
             foreach (var pm in _productMaterials)
             {
                 context.ProductMaterials.Add(new ProductMaterial
@@ -307,6 +305,7 @@ namespace Vosmerka
             {
                 using var context = new User6Context();
                 
+                
                 bool hasSales = await context.ProductSales
                     .AnyAsync(ps => ps.ProductId == _product.Id);
                 
@@ -318,7 +317,7 @@ namespace Vosmerka
                     return;
                 }
 
-                // Удаляем продукт и связанные данные
+               
                 var productToDelete = await context.Products
                     .Include(p => p.ProductMaterials)
                     .Include(p => p.ProductCostHistories)
