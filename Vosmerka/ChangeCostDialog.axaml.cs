@@ -75,38 +75,19 @@ namespace Vosmerka
                     Minimum = 0,
                     FormatString = "F2",
                     AllowSpin = true,
-                    Increment = 1
-                };
-                
-                _costTextBox.TextInput += (s, e) => 
-                {
-                    try
+                    Increment = 1,
+                    NumberFormat = new System.Globalization.NumberFormatInfo
                     {
-                        if (e.Text == "-")
-                        {
-                            e.Handled = true;
-                            MessageBox.Show(this, "Отрицательные значения не допускаются", "Ошибка").Wait();
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        MessageBox.Show(this, $"Ошибка ввода: {ex.Message}", "Ошибка").Wait();
+                        NumberDecimalDigits = 2
                     }
                 };
                 
-                _costTextBox.LostFocus += (s, e) =>
+                _costTextBox.PropertyChanged += (s, e) =>
                 {
-                    try
+                    if (e.Property == NumericUpDown.ValueProperty && _costTextBox.Value.HasValue)
                     {
-                        if (_costTextBox.Value.HasValue && _costTextBox.Value.Value < 0)
-                        {
-                            _costTextBox.Value = 0;
-                            MessageBox.Show(this, "Значение не может быть отрицательным", "Ошибка").Wait();
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        MessageBox.Show(this, $"Ошибка валидации: {ex.Message}", "Ошибка").Wait();
+                        var newValue = Math.Round(_costTextBox.Value.Value, 2);
+                        _costTextBox.Value = newValue;
                     }
                 };
 
@@ -131,6 +112,7 @@ namespace Vosmerka
                         if (!_costTextBox.Value.HasValue || _costTextBox.Value.Value < 0)
                         {
                             await MessageBox.Show(this, "Стоимость не может быть отрицательной", "Ошибка");
+                            _costTextBox.Value = NewCost; // Restore original value
                             return;
                         }
                         NewCost = _costTextBox.Value.Value;

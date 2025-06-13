@@ -12,7 +12,7 @@ using Vosmerka;
 namespace TestsProduct
 {
     [TestFixture]
-    public class ChangeCostTests
+    public class ChangeCostTests: TestBase
     {
         public class TestSynchronizationContext : SynchronizationContext
         {
@@ -28,22 +28,14 @@ namespace TestsProduct
         }
         
         private ChangeCostDialog _dialog;
-        private AppBuilder _appBuilder;
         private TestSynchronizationContext _syncContext;
 
         [OneTimeSetUp]
-        public void OneTimeSetUp()
+        public override void OneTimeSetUp()
         {
-            if (Application.Current == null)
-            {
-                _syncContext = new TestSynchronizationContext();
-                SynchronizationContext.SetSynchronizationContext(_syncContext);
-
-                _appBuilder = AppBuilder.Configure<App>()
-                    .UsePlatformDetect()
-                    .LogToTrace();
-                _appBuilder.StartWithClassicDesktopLifetime(Array.Empty<string>());
-            }
+            base.OneTimeSetUp();
+            _syncContext = new TestSynchronizationContext();
+            SynchronizationContext.SetSynchronizationContext(_syncContext);
         }
 
         [SetUp]
@@ -192,13 +184,15 @@ namespace TestsProduct
                 var buttonsPanel = content.Children[3] as StackPanel;
                 var okButton = buttonsPanel.Children[0] as Button;
 
+                var originalValue = _dialog.NewCost;
                 costTextBox.Value = -100m;
+                
                 var closeCalled = false;
                 _dialog.Closing += (s, e) => closeCalled = true;
 
                 okButton.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
 
-                Assert.That(_dialog.NewCost, Is.EqualTo(100.50m));
+                Assert.That(_dialog.NewCost, Is.EqualTo(originalValue));
                 Assert.That(closeCalled, Is.False);
             }, null);
         }
@@ -231,9 +225,19 @@ namespace TestsProduct
             {
                 var content = _dialog.Content as StackPanel;
                 var costTextBox = content.Children[2] as NumericUpDown;
+                var buttonsPanel = content.Children[3] as StackPanel;
+                var okButton = buttonsPanel.Children[0] as Button;
 
+                var originalValue = _dialog.NewCost;
                 costTextBox.Value = -100m;
-                Assert.That(costTextBox.Value, Is.GreaterThanOrEqualTo(0));
+                
+                var closeCalled = false;
+                _dialog.Closing += (s, e) => closeCalled = true;
+
+                okButton.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+
+                Assert.That(_dialog.NewCost, Is.EqualTo(originalValue));
+                Assert.That(closeCalled, Is.False);
             }, null);
         }
 

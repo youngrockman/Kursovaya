@@ -14,18 +14,21 @@ using Vosmerka.Models;
 namespace TestsProduct
 {
     [TestFixture]
-    public class ProductEditTests
+    public class ProductEditTests: TestBase
     {
         private ProductEditWindow _editWindow;
         private App _app;
 
+        
+        
+        
         [OneTimeSetUp]
-        public void OneTimeSetUp()
+        public override void OneTimeSetUp()
         {
+            base.OneTimeSetUp();
             if (Application.Current == null)
             {
                 _app = new App();
-                _app.Initialize();
             }
         }
 

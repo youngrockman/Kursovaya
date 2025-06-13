@@ -10,18 +10,11 @@ using Vosmerka.Models;
 namespace TestsProduct
 {
     [TestFixture]
-    public class MainWindowTests
+    public class MainWindowTests: TestBase
     {
         private MainWindow _mainWindow;
         
-        [OneTimeSetUp]
-        public void InitAvalonia()
-        {
-            AppBuilder.Configure<App>()
-                .UsePlatformDetect()
-                .SetupWithoutStarting();
-        }
-
+       
         [SetUp]
         public void Setup()
         {
