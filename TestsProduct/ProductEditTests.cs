@@ -5,6 +5,7 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 using Avalonia.Data;
+using Avalonia.Input;
 using Avalonia.Interactivity;
 using NUnit.Framework;
 using Vosmerka;
@@ -16,11 +17,23 @@ namespace TestsProduct
     public class ProductEditTests
     {
         private ProductEditWindow _editWindow;
-        
+        private App _app;
+
+        [OneTimeSetUp]
+        public void OneTimeSetUp()
+        {
+            if (Application.Current == null)
+            {
+                _app = new App();
+                _app.Initialize();
+            }
+        }
+
         [SetUp]
         public void Setup()
         {
             _editWindow = new ProductEditWindow();
+            _editWindow.Show();
         }
 
         [TearDown]
@@ -32,7 +45,6 @@ namespace TestsProduct
         [Test]
         public void Constructor_WithProduct_ShouldSetEditMode()
         {
-            
             var product = new Product
             {
                 Id = 1,
@@ -40,17 +52,16 @@ namespace TestsProduct
                 Title = "Test Product"
             };
 
-            
             var editWindow = new ProductEditWindow(product);
+            editWindow.Show();
 
-            
             Assert.That(editWindow.IsEditMode, Is.True);
+            editWindow.Close();
         }
 
         [Test]
         public void LoadProductData_ShouldSetCorrectValues()
         {
-            
             var product = new Product
             {
                 ArticleNumber = "TEST001",
@@ -63,11 +74,8 @@ namespace TestsProduct
             };
 
             _editWindow._product = product;
-
-         
             _editWindow.LoadProductData();
 
-          
             Assert.That(_editWindow.ArticleNumberBox.Text, Is.EqualTo("TEST001"));
             Assert.That(_editWindow.TitleBox.Text, Is.EqualTo("Test Product"));
             Assert.That(_editWindow.DescriptionBox.Text, Is.EqualTo("Test Description"));
@@ -76,12 +84,9 @@ namespace TestsProduct
             Assert.That(_editWindow.MinCostBox.Value, Is.EqualTo(100));
         }
 
-        
-
         [Test]
         public void RemoveMaterial_Click_ShouldRemoveMaterialFromList()
         {
-           
             var material = new ProductMaterial
             {
                 MaterialId = 1,
@@ -90,95 +95,113 @@ namespace TestsProduct
             _editWindow._productMaterials.Add(material);
 
             var button = new Button { DataContext = material };
-
-            
             _editWindow.RemoveMaterial_Click(button, null);
 
-          
             Assert.That(_editWindow._productMaterials.Count, Is.EqualTo(0));
         }
 
         [Test]
-        public void MaterialsGrid_CellEditEnding_ShouldValidateNumericInput()
+        public void ArticleNumber_TextInput_ShouldOnlyAcceptDigits()
         {
-            
-            var textBox = new TextBox { Text = "invalid" };
-            var column = new DataGridTextColumn { Header = "Количество" };
-            var row = new DataGridRow();
-            
-            
-            var args = new DataGridCellEditEndingEventArgs(
-                column, 
-                row, 
-                textBox, 
-                DataGridEditAction.Commit
-            );
+            var args = new TextInputEventArgs { Text = "123" };
+            _editWindow.ArticleNumber_TextInput(null, args);
+            Assert.That(args.Handled, Is.False);
 
-          
-            _editWindow.MaterialsGrid_CellEditEnding(null, args);
-
-        
-            Assert.That(args.Cancel, Is.True);
+            args = new TextInputEventArgs { Text = "abc" };
+            _editWindow.ArticleNumber_TextInput(null, args);
+            Assert.That(args.Handled, Is.True);
         }
 
         [Test]
-        public void MaterialsGrid_CellEditEnding_ShouldAcceptValidNumericInput()
+        public void ValidateInput_WithEmptyArticleNumber_ShouldReturnFalse()
         {
-           
-            var textBox = new TextBox { Text = "10" };
-            var column = new DataGridTextColumn { Header = "Количество" };
-            var row = new DataGridRow();
-            
-            
-            var args = new DataGridCellEditEndingEventArgs(
-                column, 
-                row, 
-                textBox, 
-                DataGridEditAction.Commit
-            );
-
-           
-            _editWindow.MaterialsGrid_CellEditEnding(null, args);
-
-          
-            Assert.That(args.Cancel, Is.False);
+            _editWindow.ArticleNumberBox.Text = "";
+            Assert.That(_editWindow.ValidateInput(), Is.False);
         }
 
         [Test]
-        public void ProductPresenter_MaterialsList_ShouldReturnCorrectString()
+        public void ValidateInput_WithNonNumericArticleNumber_ShouldReturnFalse()
         {
-            
-            var product = new Product
+            _editWindow.ArticleNumberBox.Text = "123abc";
+            Assert.That(_editWindow.ValidateInput(), Is.False);
+        }
+
+        [Test]
+        public void ValidateInput_WithEmptyTitle_ShouldReturnFalse()
+        {
+            _editWindow.ArticleNumberBox.Text = "123";
+            _editWindow.TitleBox.Text = "";
+            Assert.That(_editWindow.ValidateInput(), Is.False);
+        }
+
+        [Test]
+        public void ValidateInput_WithNoProductType_ShouldReturnFalse()
+        {
+            _editWindow.ArticleNumberBox.Text = "123";
+            _editWindow.TitleBox.Text = "Test";
+            _editWindow.ProductTypeBox.SelectedItem = null;
+            Assert.That(_editWindow.ValidateInput(), Is.False);
+        }
+
+        [Test]
+        public void ValidateInput_WithZeroPersonCount_ShouldReturnFalse()
+        {
+            _editWindow.ArticleNumberBox.Text = "123";
+            _editWindow.TitleBox.Text = "Test";
+            _editWindow.ProductTypeBox.SelectedItem = new ProductType();
+            _editWindow.PersonCountBox.Value = 0;
+            Assert.That(_editWindow.ValidateInput(), Is.False);
+        }
+
+        [Test]
+        public void ValidateInput_WithValidData_ShouldReturnTrue()
+        {
+            _editWindow.ArticleNumberBox.Text = "123";
+            _editWindow.TitleBox.Text = "Test";
+            _editWindow.ProductTypeBox.SelectedItem = new ProductType();
+            _editWindow.PersonCountBox.Value = 1;
+            Assert.That(_editWindow.ValidateInput(), Is.True);
+        }
+
+        [Test]
+        public void MaterialSearchBox_TextChanged_ShouldFilterMaterials()
+        {
+            _editWindow._allMaterials = new List<Material>
             {
-                ArticleNumber = "TEST001",
-                ProductMaterials = new List<ProductMaterial>
-                {
-                    new() { Material = new Material { Title = "Material 1" } },
-                    new() { Material = new Material { Title = "Material 2" } }
-                }
+                new() { Title = "Test Material 1", MaterialType = new MaterialType { Title = "Type 1" } },
+                new() { Title = "Another Material", MaterialType = new MaterialType { Title = "Type 2" } }
             };
 
-         
-            var materialsList = string.Join(", ", 
-                product.ProductMaterials
-                    .Where(pm => pm?.Material != null)
-                    .Select(pm => pm.Material.Title));
+            _editWindow.MaterialSearchBox.Text = "Test";
+            _editWindow.MaterialSearchBox_TextChanged(null, null);
 
-           
-            Assert.That(materialsList, Is.EqualTo("Material 1, Material 2"));
+            var filteredMaterials = _editWindow.MaterialsComboBox.ItemsSource as List<Material>;
+            Assert.That(filteredMaterials.Count, Is.EqualTo(1));
+            Assert.That(filteredMaterials[0].Title, Is.EqualTo("Test Material 1"));
+        }
+
+        [Test]
+        public void MaterialSearchBox_TextChanged_WithEmptyText_ShouldShowAllMaterials()
+        {
+            _editWindow._allMaterials = new List<Material>
+            {
+                new() { Title = "Test Material 1" },
+                new() { Title = "Test Material 2" }
+            };
+
+            _editWindow.MaterialSearchBox.Text = "";
+            _editWindow.MaterialSearchBox_TextChanged(null, null);
+
+            var filteredMaterials = _editWindow.MaterialsComboBox.ItemsSource as List<Material>;
+            Assert.That(filteredMaterials.Count, Is.EqualTo(2));
         }
 
         [Test]
         public void Cancel_Click_ShouldCloseWindow()
         {
-            
             var closeCalled = false;
             _editWindow.Closing += (s, e) => closeCalled = true;
-
-            
             _editWindow.Cancel_Click(null, null);
-
-            
             Assert.That(closeCalled, Is.True);
         }
     }

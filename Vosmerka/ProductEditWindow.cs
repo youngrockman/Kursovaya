@@ -21,7 +21,7 @@ namespace Vosmerka
         private bool _isEditMode;
         private string? _imagePath;
         public List<ProductMaterial> _productMaterials = new List<ProductMaterial>();
-        private List<Material> _allMaterials = new List<Material>();
+        public List<Material> _allMaterials = new List<Material>();
         private List<ProductType> _productTypes = new List<ProductType>();
 
         public bool IsEditMode
@@ -52,25 +52,25 @@ namespace Vosmerka
             {
                 using var context = new User6Context();
 
-                // Загрузка типов продуктов
+               
                 _productTypes = await context.ProductTypes.ToListAsync();
                 ProductTypeBox.ItemsSource = _productTypes;
                 ProductTypeBox.DisplayMemberBinding = new Binding("Title");
 
-                // Загрузка материалов
+              
                 _allMaterials = await context.Materials
                     .Include(m => m.MaterialType)
                     .OrderBy(m => m.Title)
                     .ToListAsync();
                     
-                // Устанавливаем начальный источник данных для ComboBox
+              
                 MaterialsComboBox.ItemsSource = _allMaterials;
                 MaterialsComboBox.DisplayMemberBinding = new Binding("Title");
 
-                // Для режима редактирования загружаем данные продукта
+                
                 if (IsEditMode && _product != null)
                 {
-                    // Загрузка связанных материалов
+                    
                     _productMaterials = await context.ProductMaterials
                         .Include(pm => pm.Material)
                         .ThenInclude(m => m.MaterialType)
@@ -79,12 +79,12 @@ namespace Vosmerka
 
                     MaterialsListBox.ItemsSource = _productMaterials;
                     
-                    // Загрузка остальных данных
+                    
                     LoadProductData();
                 }
                 else
                 {
-                    // Для нового продукта инициализируем пустой список
+                    
                     MaterialsListBox.ItemsSource = _productMaterials;
                 }
             }
@@ -94,11 +94,11 @@ namespace Vosmerka
             }
         }
 
-        private void MaterialSearchBox_TextChanged(object? sender, TextChangedEventArgs e)
+        public void MaterialSearchBox_TextChanged(object? sender, TextChangedEventArgs e)
         {
             if (string.IsNullOrWhiteSpace(MaterialSearchBox.Text))
             {
-                // Если поле поиска пустое, показываем все материалы
+                
                 MaterialsComboBox.ItemsSource = _allMaterials;
                 return;
             }
@@ -110,7 +110,7 @@ namespace Vosmerka
                            m.MaterialType.Title.ToLower().Contains(searchText))
                 .ToList();
 
-            // Обновляем источник данных ComboBox
+            
             MaterialsComboBox.ItemsSource = filteredMaterials;
         }
 
@@ -169,7 +169,7 @@ namespace Vosmerka
             }
         }
 
-        private async void AddMaterial_Click(object sender, RoutedEventArgs e)
+        public async void AddMaterial_Click(object sender, RoutedEventArgs e)
         {
             if (MaterialsComboBox.SelectedItem is Material selectedMaterial)
             {
@@ -265,7 +265,7 @@ namespace Vosmerka
             }
         }
 
-        private bool ValidateInput()
+        public bool ValidateInput()
         {
             if (string.IsNullOrWhiteSpace(ArticleNumberBox.Text))
             {
@@ -403,7 +403,7 @@ namespace Vosmerka
             Close(false);
         }
 
-        private void ArticleNumber_TextInput(object? sender, TextInputEventArgs e)
+        public void ArticleNumber_TextInput(object? sender, TextInputEventArgs e)
         {
             e.Handled = !char.IsDigit(e.Text[0]);
         }
