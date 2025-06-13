@@ -52,19 +52,25 @@ namespace Vosmerka
             {
                 using var context = new User6Context();
 
+                // Загрузка типов продуктов
                 _productTypes = await context.ProductTypes.ToListAsync();
                 ProductTypeBox.ItemsSource = _productTypes;
                 ProductTypeBox.DisplayMemberBinding = new Binding("Title");
 
+                // Загрузка материалов
                 _allMaterials = await context.Materials
                     .Include(m => m.MaterialType)
                     .OrderBy(m => m.Title)
                     .ToListAsync();
+                    
+                // Устанавливаем начальный источник данных для ComboBox
                 MaterialsComboBox.ItemsSource = _allMaterials;
                 MaterialsComboBox.DisplayMemberBinding = new Binding("Title");
 
+                // Для режима редактирования загружаем данные продукта
                 if (IsEditMode && _product != null)
                 {
+                    // Загрузка связанных материалов
                     _productMaterials = await context.ProductMaterials
                         .Include(pm => pm.Material)
                         .ThenInclude(m => m.MaterialType)
@@ -72,10 +78,13 @@ namespace Vosmerka
                         .ToListAsync();
 
                     MaterialsListBox.ItemsSource = _productMaterials;
+                    
+                    // Загрузка остальных данных
                     LoadProductData();
                 }
                 else
                 {
+                    // Для нового продукта инициализируем пустой список
                     MaterialsListBox.ItemsSource = _productMaterials;
                 }
             }
@@ -83,6 +92,26 @@ namespace Vosmerka
             {
                 await MessageBox.Show(this, $"Ошибка загрузки данных: {ex.Message}", "Ошибка");
             }
+        }
+
+        private void MaterialSearchBox_TextChanged(object? sender, TextChangedEventArgs e)
+        {
+            if (string.IsNullOrWhiteSpace(MaterialSearchBox.Text))
+            {
+                // Если поле поиска пустое, показываем все материалы
+                MaterialsComboBox.ItemsSource = _allMaterials;
+                return;
+            }
+
+            // Фильтруем материалы по введенному тексту
+            var searchText = MaterialSearchBox.Text.ToLower();
+            var filteredMaterials = _allMaterials
+                .Where(m => m.Title.ToLower().Contains(searchText) || 
+                           m.MaterialType.Title.ToLower().Contains(searchText))
+                .ToList();
+
+            // Обновляем источник данных ComboBox
+            MaterialsComboBox.ItemsSource = filteredMaterials;
         }
 
         public void LoadProductData()

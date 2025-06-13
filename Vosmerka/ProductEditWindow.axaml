@@ -9,7 +9,6 @@
 
     <ScrollViewer>
         <StackPanel Margin="15" Spacing="10">
-
             <TextBlock Text="Артикул:"/>
             <TextBox x:Name="ArticleNumberBox" TextInput="ArticleNumber_TextInput"/>
 
@@ -57,10 +56,24 @@
             </Grid>
 
             <TextBlock Text="Материалы:" Margin="0,10,0,0"/>
-            <StackPanel Orientation="Horizontal" Spacing="10">
-                <ComboBox x:Name="MaterialsComboBox" IsTextSearchEnabled="True" Width="250"/>
-                <Button Content="Добавить" Background="#A163F5" Click="AddMaterial_Click"/>
-            </StackPanel>
+            <Grid Margin="0,0,0,10">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                
+                <TextBox Grid.Column="0" x:Name="MaterialSearchBox" 
+                         Width="250" Margin="0,0,10,0"
+                         Watermark="Поиск материала..."
+                         TextChanged="MaterialSearchBox_TextChanged"/>
+                         
+                <ComboBox Grid.Column="1" x:Name="MaterialsComboBox" Width="250" 
+                          IsTextSearchEnabled="True"/>
+                          
+                <Button Grid.Column="2" Content="Добавить" 
+                        Background="#A163F5" Click="AddMaterial_Click"/>
+            </Grid>
 
             <ListBox x:Name="MaterialsListBox" ItemsSource="{Binding _productMaterials}" Margin="0,5,0,0">
                 <ListBox.ItemTemplate>
