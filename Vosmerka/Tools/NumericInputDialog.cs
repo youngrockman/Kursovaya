@@ -20,8 +20,8 @@ namespace Vosmerka.Tools
             this.Title = "Выбор количества материала";
             this.Icon = LoadIcon();
         }
-    
-        private WindowIcon LoadIcon()
+
+        public WindowIcon LoadIcon()
         {
             try
             {
@@ -98,7 +98,7 @@ namespace Vosmerka.Tools
             Content = stackPanel;
         }
 
-        private async Task<bool> ValidateInputAsync()
+        public async Task<bool> ValidateInputAsync()
         {
             if (int.TryParse(_textBox.Text, out int value) && value >= 1)
             {
