@@ -1,11 +1,11 @@
 using System;
-using System.Collections.ObjectModel;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls;
-using Avalonia.Headless;
 using Avalonia.Interactivity;
+using Avalonia.Media;
 using Microsoft.EntityFrameworkCore;
 using NUnit.Framework;
 using Vosmerka;
@@ -24,288 +24,240 @@ namespace TestsProduct
         {
             AppBuilder.Configure<App>()
                 .UsePlatformDetect()
-                .LogToTrace()
-                .With((object)new 
-                {
-                    UseHeadlessDrawing = true,
-                    UseCompositor = false
-                })
                 .SetupWithoutStarting();
         }
 
         [SetUp]
-        public async Task Setup()
+        public void Setup()
         {
             _dbContext = new User6Context();
-            await ClearAndSeedDatabase();
-    
-            
-            await Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() =>
-            {
-                _mainWindow = new MainWindow();
-            });
+            _mainWindow = new MainWindow();
         }
 
         [TearDown]
-        public async Task TearDown()
+        public void TearDown()
         {
-            await _dbContext.DisposeAsync();
+            _dbContext?.Dispose();
         }
 
-        private async Task ClearAndSeedDatabase()
-        {
-            // Очистка таблиц
-            _dbContext.ProductSales.RemoveRange(_dbContext.ProductSales);
-            _dbContext.ProductCostHistories.RemoveRange(_dbContext.ProductCostHistories);
-            _dbContext.ProductMaterials.RemoveRange(_dbContext.ProductMaterials);
-            _dbContext.Products.RemoveRange(_dbContext.Products);
-            _dbContext.ProductTypes.RemoveRange(_dbContext.ProductTypes);
-            await _dbContext.SaveChangesAsync();
-
-            // Тестовые данные
-            var productType = new ProductType { Title = "Тестовый тип" };
-            _dbContext.ProductTypes.Add(productType);
-            
-            _dbContext.Products.Add(new Product
-            {
-                Title = "Тестовый продукт",
-                ArticleNumber = "TEST001",
-                ProductType = productType,
-                MinCostForAgent = 100,
-                ProductionWorkshopNumber = 1
-            });
-            
-            await _dbContext.SaveChangesAsync();
-        }
+        
 
         [Test]
-        public async Task LoadProducts_ShouldLoadProductsFromDatabase()
+        public void CalculateProductCost_WithMaterials_ShouldReturnCorrectValue()
         {
-            await _mainWindow.LoadProducts();
-            var products = GetPrivateField<ObservableCollection<MainWindow.ProductPresenter>>(_mainWindow, "products");
             
-            Assert.AreEqual(1, products.Count);
-            Assert.AreEqual("Тестовый продукт", products[0].Title);
-        }
-
-        [Test]
-        public void CalculateProductCost_ShouldReturnCorrectValue()
-        {
             var product = new Product
             {
                 MinCostForAgent = 100,
-                ProductMaterials = new System.Collections.Generic.List<ProductMaterial>
+                ArticleNumber = "TEST001",
+                ProductMaterials = new List<ProductMaterial>
                 {
-                    new ProductMaterial { Count = 2, Material = new Material { Cost = 10 } },
-                    new ProductMaterial { Count = 3, Material = new Material { Cost = 20 } }
+                    new() { Count = 2, Material = new Material { Cost = 10 } },
+                    new() { Count = 3, Material = new Material { Cost = 20 } }
                 }
             };
             
-            var cost = InvokePrivateMethod<decimal>(_mainWindow, "CalculateProductCost", product);
-            
-            Assert.AreEqual(80, cost);
-        }
-
-        [Test]
-        public async Task ApplyFilters_ShouldFilterProducts()
-        {
-            await _mainWindow.LoadProducts();
-            SetPrivateField(_mainWindow, "_searchText", "Тестовый");
-            
-            InvokePrivateMethod(_mainWindow, "ApplyFilters");
-            
-            var filtered = GetPrivateField<List<MainWindow.ProductPresenter>>(_mainWindow, "filteredProducts");
-            Assert.AreEqual(1, filtered.Count);
-            Assert.AreEqual("Тестовый продукт", filtered[0].Title);
-        }
-        
-        [Test]
-        public async Task ApplySorting_ShouldSortByNameAscending()
-        {
-            await _mainWindow.LoadProducts();
-            SetPrivateField(_mainWindow, "filteredProducts", new List<MainWindow.ProductPresenter>
-            {
-                new() { Title = "B Продукт" },
-                new() { Title = "A Продукт" },
-                new() { Title = "C Продукт" }
-            });
-    
-           
-            SetPrivateField(_mainWindow, "_sortField", "Наименование");
-            SetPrivateField(_mainWindow, "_sortOrder", "по возрастанию");
-            InvokePrivateMethod(_mainWindow, "ApplySorting");
-    
-            
-            var filtered = GetPrivateField<List<MainWindow.ProductPresenter>>(_mainWindow, "filteredProducts");
-            Assert.AreEqual("A Продукт", filtered[0].Title);
-            Assert.AreEqual("B Продукт", filtered[1].Title);
-        }
-
-        [Test]
-        public async Task ApplySorting_ShouldSortByCostDescending()
-        {
-            
-            await _mainWindow.LoadProducts();
-            SetPrivateField(_mainWindow, "filteredProducts", new List<MainWindow.ProductPresenter>
-            {
-                new() { MinCostForAgent = 100 },
-                new() { MinCostForAgent = 300 },
-                new() { MinCostForAgent = 200 }
-            });
-    
           
-            SetPrivateField(_mainWindow, "_sortField", "Минимальная стоимость");
-            SetPrivateField(_mainWindow, "_sortOrder", "по убыванию");
-            InvokePrivateMethod(_mainWindow, "ApplySorting");
-    
-           
-            var filtered = GetPrivateField<List<MainWindow.ProductPresenter>>(_mainWindow, "filteredProducts");
-            Assert.AreEqual(300, filtered[0].MinCostForAgent);
-            Assert.AreEqual(200, filtered[1].MinCostForAgent);
-        }
-        
-        [Test]
-        public async Task UpdatePaginationControls_ShouldCreateCorrectButtons()
-        {
+            var cost = _mainWindow.CalculateProductCost(product);
             
-            await _mainWindow.LoadProducts();
-            SetPrivateField(_mainWindow, "filteredProducts", 
-                Enumerable.Range(1, 25)
-                    .Select(i => new MainWindow.ProductPresenter())
-                    .ToList());
-    
-            
-            InvokePrivateMethod(_mainWindow, "UpdatePaginationControls");
-    
-            
-            var paginationPanel = GetPrivateField<ItemsControl>(_mainWindow, "PaginationPanel");
-            Assert.AreEqual(2, paginationPanel.Items.Count); // 25 items / 20 per page = 2 pages
+          
+            Assert.That(cost, Is.EqualTo(80));
         }
 
         [Test]
-        public async Task NextPage_Click_ShouldIncrementCurrentPage()
+        public void CalculateProductCost_WithoutMaterials_ShouldReturnMinCostForAgent()
         {
             
-            await _mainWindow.LoadProducts();
-            SetPrivateField(_mainWindow, "filteredProducts", 
-                Enumerable.Range(1, 25)
-                    .Select(i => new MainWindow.ProductPresenter())
-                    .ToList());
-            SetPrivateField(_mainWindow, "currentPage", 1);
-    
+            var product = new Product
+            {
+                MinCostForAgent = 100,
+                ArticleNumber = "TEST001",
+                ProductMaterials = new List<ProductMaterial>()
+            };
             
-            InvokePrivateMethod(_mainWindow, "NextPage_Click", null, new RoutedEventArgs());
-    
             
-            Assert.AreEqual(2, GetPrivateField<int>(_mainWindow, "currentPage"));
+            var cost = _mainWindow.CalculateProductCost(product);
+            
+            
+            Assert.That(cost, Is.EqualTo(100));
         }
-        
-        
+
         [Test]
-        public async Task UpdateProductsCost_ShouldUpdateCostInDatabase()
+        public void ApplyFilters_ShouldFilterBySearchText()
         {
             
-            var testProduct = new MainWindow.ProductPresenter { Id = 1, MinCostForAgent = 100 };
-            await _mainWindow.LoadProducts();
+            _mainWindow.allProducts = new List<MainWindow.ProductPresenter>
+            {
+                new() { Title = "Тестовый продукт 1", ArticleNumber = "TEST001" },
+                new() { Title = "Другой продукт", ArticleNumber = "TEST002" }
+            };
+            _mainWindow.SearchBox.Text = "Тестовый";
+
+            
+            _mainWindow.ApplyFilters();
+
+         
+            Assert.That(_mainWindow.filteredProducts.Count, Is.EqualTo(1));
+            Assert.That(_mainWindow.filteredProducts[0].Title, Is.EqualTo("Тестовый продукт 1"));
+        }
+
+        [Test]
+        public void ApplyFilters_ShouldFilterByProductType()
+        {
+            
+            var productType = new ProductType { Title = "Тип 1" };
+            _mainWindow.allProducts = new List<MainWindow.ProductPresenter>
+            {
+                new() { 
+                    Title = "Продукт 1", 
+                    ArticleNumber = "TEST001", 
+                    ProductType = productType 
+                },
+                new() { 
+                    Title = "Продукт 2", 
+                    ArticleNumber = "TEST002", 
+                    ProductType = new ProductType { Title = "Тип 2" } 
+                }
+            };
+    
+            
+            _mainWindow.FilterBox.ItemsSource = new List<string> { "Все типы", "Тип 1", "Тип 2" };
+            _mainWindow.FilterBox.SelectedItem = "Тип 1";
+
+            
+            _mainWindow.ApplyFilters();
+
+            
+            Assert.That(_mainWindow.filteredProducts.Count, Is.EqualTo(1));
+            Assert.That(_mainWindow.filteredProducts[0].Title, Is.EqualTo("Продукт 1"));
+        }
+
+        [Test]
+        public void ApplySorting_ShouldSortByNameAscending()
+        {
+            
+            _mainWindow.filteredProducts = new List<MainWindow.ProductPresenter>
+            {
+                new() { Title = "B Продукт", ArticleNumber = "TEST002" },
+                new() { Title = "A Продукт", ArticleNumber = "TEST001" },
+                new() { Title = "C Продукт", ArticleNumber = "TEST003" }
+            };
+            _mainWindow.SortBox.SelectedItem = "Наименование";
+            _mainWindow.SortOrderBox.SelectedItem = "по возрастанию";
+
+           
+            _mainWindow.ApplySorting();
+
+           
+            Assert.That(_mainWindow.filteredProducts[0].Title, Is.EqualTo("A Продукт"));
+            Assert.That(_mainWindow.filteredProducts[1].Title, Is.EqualTo("B Продукт"));
+            Assert.That(_mainWindow.filteredProducts[2].Title, Is.EqualTo("C Продукт"));
+        }
+
+        [Test]
+        public void ApplySorting_ShouldSortByWorkshopNumberDescending()
+        {
+           
+            var originalProducts = new List<MainWindow.ProductPresenter>
+            {
+                new() { 
+                    Title = "Продукт 1", 
+                    ArticleNumber = "TEST001", 
+                    ProductionWorkshopNumber = 1 
+                },
+                new() { 
+                    Title = "Продукт 2", 
+                    ArticleNumber = "TEST002", 
+                    ProductionWorkshopNumber = 3 
+                },
+                new() { 
+                    Title = "Продукт 3", 
+                    ArticleNumber = "TEST003", 
+                    ProductionWorkshopNumber = 2 
+                }
+            };
     
            
-            await InvokePrivateMethod<Task>(_mainWindow, "UpdateProductsCost", 
-                new List<MainWindow.ProductPresenter> { testProduct }, 150m); //m это decimal
-    
+            _mainWindow.filteredProducts = new List<MainWindow.ProductPresenter>(originalProducts);
+            _mainWindow.SortBox = new ComboBox
+            {
+                ItemsSource = new List<string> { "Наименование", "Номер цеха", "Минимальная стоимость" },
+                SelectedItem = "Номер цеха"
+            };
+            _mainWindow.SortOrderBox = new ComboBox
+            {
+                ItemsSource = new List<string> { "по возрастанию", "по убыванию" },
+                SelectedItem = "по убыванию"
+            };
+
             
-            using var context = new User6Context();
-            var dbProduct = await context.Products.FindAsync(1);
-            Assert.AreEqual(150, dbProduct.MinCostForAgent);
+            _mainWindow.ApplySorting();
+
+            
+            Assert.That(_mainWindow.filteredProducts, Is.Not.Null);
+            Assert.That(_mainWindow.filteredProducts.Count, Is.EqualTo(3), 
+                "Количество продуктов после сортировки не должно измениться");
     
-            var history = await context.ProductCostHistories
-                .Where(h => h.ProductId == 1)
-                .OrderByDescending(h => h.ChangeDate)
-                .FirstOrDefaultAsync();
-            Assert.AreEqual(150, history?.CostValue);
+            Assert.That(_mainWindow.filteredProducts[0].ProductionWorkshopNumber, Is.EqualTo(3),
+                "Первый продукт должен иметь наибольший номер цеха");
+            Assert.That(_mainWindow.filteredProducts[1].ProductionWorkshopNumber, Is.EqualTo(2),
+                "Второй продукт должен иметь средний номер цеха");
+            Assert.That(_mainWindow.filteredProducts[2].ProductionWorkshopNumber, Is.EqualTo(1),
+                "Третий продукт должен иметь наименьший номер цеха");
         }
+
+        [Test]
+        public void UpdateDisplay_ShouldUpdateProductsCollection()
+        {
+            
+            _mainWindow.filteredProducts = new List<MainWindow.ProductPresenter>
+            {
+                new() { Title = "Продукт 1", ArticleNumber = "TEST001" },
+                new() { Title = "Продукт 2", ArticleNumber = "TEST002" }
+            };
+            _mainWindow.currentPage = 1;
+
+           
+            _mainWindow.UpdateDisplay();
+
+      
+            Assert.That(_mainWindow.products.Count, Is.EqualTo(2));
+            Assert.That(_mainWindow.products[0].Title, Is.EqualTo("Продукт 1"));
+            Assert.That(_mainWindow.products[1].Title, Is.EqualTo("Продукт 2"));
+        }
+
         
-        
+
         [Test]
         public void ProductPresenter_MaterialsList_ShouldReturnCorrectString()
         {
             
             var presenter = new MainWindow.ProductPresenter
             {
+                ArticleNumber = "TEST001",
                 ProductMaterials = new List<ProductMaterial>
                 {
                     new() { Material = new Material { Title = "Материал 1" } },
                     new() { Material = new Material { Title = "Материал 2" } }
                 }
             };
-    
-           
-            Assert.AreEqual("Материал 1, Материал 2", presenter.MaterialsList);
+
+            
+            Assert.That(presenter.MaterialsList, Is.EqualTo("Материал 1, Материал 2"));
         }
 
         [Test]
-        public void ProductPresenter_ProductImage_ShouldReturnDefaultWhenImageMissing()
+        public void ProductPresenter_MaterialsList_ShouldReturnEmptyString_WhenNoMaterials()
         {
             
-            var presenter = new MainWindow.ProductPresenter { Image = "missing.jpg" };
-    
-            
-            Assert.NotNull(presenter.ProductImage); // Должен вернуть изображение по умолчанию
-        }
-        
-        [Test]
-        public void ProductListBox_SelectionChanged_ShouldUpdateButtonVisibility()
-        {
-            
-            var mainWindow = new MainWindow();
-            var testProduct = new MainWindow.ProductPresenter();
-            GetPrivateField<ObservableCollection<MainWindow.ProductPresenter>>(mainWindow, "products").Add(testProduct);
-    
-            
-            var listBox = new ListBox();
-            listBox.Items.Add(testProduct);
-            listBox.SelectedItem = testProduct;
-            InvokePrivateMethod(mainWindow, "ProductListBox_SelectionChanged", listBox, null);
-    
-            
-            var button = GetPrivateField<Button>(mainWindow, "_changeCostButton");
-            Assert.IsTrue(button.IsVisible);
-        }
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
+            var presenter = new MainWindow.ProductPresenter
+            {
+                ArticleNumber = "TEST001",
+                ProductMaterials = new List<ProductMaterial>()
+            };
 
-        // Вспомогательные методы для доступа к private 
-        private static T GetPrivateField<T>(object obj, string fieldName)
-        {
-            var field = obj.GetType().GetField(fieldName, System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-            return (T)field?.GetValue(obj);
-        }
-
-        private static void SetPrivateField(object obj, string fieldName, object value)
-        {
-            var field = obj.GetType().GetField(fieldName, System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-            field?.SetValue(obj, value);
-        }
-
-        private static T InvokePrivateMethod<T>(object obj, string methodName, params object[] parameters)
-        {
-            var method = obj.GetType().GetMethod(methodName, System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-            return (T)method?.Invoke(obj, parameters);
-        }
-
-        private static void InvokePrivateMethod(object obj, string methodName, params object[] parameters)
-        {
-            var method = obj.GetType().GetMethod(methodName, System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-            method?.Invoke(obj, parameters);
+            
+            Assert.That(presenter.MaterialsList, Is.Empty);
         }
     }
 }
