@@ -40,4 +40,8 @@
     <ItemGroup>
       <AvaloniaResource Include="Assets\vosmerka.ico" />
     </ItemGroup>
+
+    <ItemGroup>
+      <InternalsVisibleTo Include="TestsProduct" />
+    </ItemGroup>
 </Project>

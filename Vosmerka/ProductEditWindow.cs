@@ -17,10 +17,10 @@ namespace Vosmerka
 {
     public partial class ProductEditWindow : Window
     {
-        private Product _product;
+        public Product _product;
         private bool _isEditMode;
         private string? _imagePath;
-        private List<ProductMaterial> _productMaterials = new();
+        public List<ProductMaterial> _productMaterials = new();
 
         public bool IsEditMode
         {
@@ -49,7 +49,7 @@ namespace Vosmerka
             };
         }
 
-        private async Task LoadDataAsync()
+        public async Task LoadDataAsync()
         {
             try
             {
@@ -80,7 +80,7 @@ namespace Vosmerka
         }
 
 
-        private void LoadProductData()
+        public void LoadProductData()
         {
             ArticleNumberBox.Text = _product.ArticleNumber;
             TitleBox.Text = _product.Title;
@@ -142,7 +142,7 @@ namespace Vosmerka
 
         
         //Добавление материала
-        private async void AddMaterial_Click(object sender, RoutedEventArgs e)
+        public async void AddMaterial_Click(object sender, RoutedEventArgs e)
         {
             if (MaterialsComboBox.SelectedItem is Material selectedMaterial)
             {
@@ -181,7 +181,7 @@ namespace Vosmerka
 
         
         // Для очистки материала
-        private void RemoveMaterial_Click(object sender, RoutedEventArgs e)
+        public void RemoveMaterial_Click(object sender, RoutedEventArgs e)
         {
             if (sender is Button button && button.DataContext is ProductMaterial material)
             {
@@ -191,11 +191,30 @@ namespace Vosmerka
             }
         }
 
-        private async void Save_Click(object sender, RoutedEventArgs e)
+        public async void Save_Click(object sender, RoutedEventArgs e)
         {
             if (string.IsNullOrWhiteSpace(ArticleNumberBox.Text))
             {
                 await MessageBox.Show(this, "Артикул не может быть пустым", "Ошибка");
+                return;
+            }
+
+            if (PersonCountBox.Value.HasValue && PersonCountBox.Value.Value != Math.Floor(PersonCountBox.Value.Value) ||
+                WorkshopNumberBox.Value.HasValue && WorkshopNumberBox.Value.Value != Math.Floor(WorkshopNumberBox.Value.Value))
+            {
+                await MessageBox.Show(this, "Количество работников и номер цеха должны быть целыми числами", "Ошибка");
+                return;
+            }
+            
+            if (!PersonCountBox.Value.HasValue || PersonCountBox.Value.Value <= 0)
+            {
+                await MessageBox.Show(this, "Количество работников должно быть больше 0", "Ошибка");
+                return;
+            }
+
+            if (ArticleNumberBox.Text.Any(c => !char.IsDigit(c)))
+            {
+                await MessageBox.Show(this, "Артикул должен содержать только цифры", "Ошибка");
                 return;
             }
 
@@ -344,12 +363,12 @@ namespace Vosmerka
             }
         }
 
-        private void Cancel_Click(object sender, RoutedEventArgs e)
+        public void Cancel_Click(object sender, RoutedEventArgs e)
         {
             Close(false);
         }
-        
-        private void MaterialsGrid_CellEditEnding(object? sender, DataGridCellEditEndingEventArgs e)
+
+        public void MaterialsGrid_CellEditEnding(object? sender, DataGridCellEditEndingEventArgs e)
         {
             if (e.EditAction == DataGridEditAction.Commit && 
                 e.Column.Header.ToString() == "Количество" &&
@@ -362,6 +381,13 @@ namespace Vosmerka
                 }
             }
         }
+        
+        private void ArticleNumber_TextInput(object? sender, TextInputEventArgs e)
+        {
+            e.Handled = !char.IsDigit(e.Text[0]);
+        }
+        
+        
         
     }
 }

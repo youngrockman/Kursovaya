@@ -13,10 +13,11 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("Vosmerka")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+03b9371f7fa4197a71d1952931ba9b721e35e8fc")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+428e9c38635573ff83d7d47bc2627cef3099bc5e")]
 [assembly: System.Reflection.AssemblyProductAttribute("Vosmerka")]
 [assembly: System.Reflection.AssemblyTitleAttribute("Vosmerka")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
+[assembly: System.Runtime.CompilerServices.InternalsVisibleTo("TestsProduct")]
 
 // Создано классом WriteCodeFragment MSBuild.
 

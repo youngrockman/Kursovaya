@@ -19,11 +19,11 @@ namespace Vosmerka
 {
     public partial class MainWindow : Window
     {
-        private ObservableCollection<ProductPresenter> products = new();
-        private List<ProductPresenter> allProducts = new();
-        private List<ProductPresenter> filteredProducts = new();
+        public ObservableCollection<ProductPresenter> products = new();
+        public List<ProductPresenter> allProducts = new();
+        public List<ProductPresenter> filteredProducts = new();
         private const int pageSize = 20;
-        private int currentPage = 1;
+        public int currentPage = 1;
         private int pageCount = 0;
         
         private Button _changeCostButton;
@@ -41,8 +41,8 @@ namespace Vosmerka
             
             ProductListBox.SelectionChanged += ProductListBox_SelectionChanged;
         }
-        
-        private async void AddButton_Click(object sender, RoutedEventArgs e)
+
+        public async void AddButton_Click(object sender, RoutedEventArgs e)
         {
             var editWindow = new ProductEditWindow();
             var result = await editWindow.ShowDialog<bool>(this);
@@ -131,7 +131,7 @@ namespace Vosmerka
             }
         }
 
-        private async Task UpdateProductsCost(List<ProductPresenter> productsToUpdate, decimal newCost)
+        public async Task UpdateProductsCost(List<ProductPresenter> productsToUpdate, decimal newCost)
         {
             try
             {
@@ -213,7 +213,7 @@ namespace Vosmerka
         }
 
         //Подгруджаем продукты и соответствующие поля
-        private async Task LoadProducts()
+        public async Task LoadProducts()
         {
             try
             {
@@ -254,7 +254,7 @@ namespace Vosmerka
             }
         }
 
-        private decimal CalculateProductCost(Product product)
+        public decimal CalculateProductCost(Product product)
         {
             decimal materialsCost = product.ProductMaterials?
                 .Sum(pm => (pm.Material?.Cost ?? 0) * (decimal)(pm.Count ?? 0)) ?? 0;
@@ -304,7 +304,7 @@ namespace Vosmerka
             SortOrderBox.SelectedIndex = 0;
         }
 
-        private void ApplyFilters()
+        public void ApplyFilters()
         {
             try
             {
@@ -328,7 +328,7 @@ namespace Vosmerka
             }
         }
 
-        private void ApplySorting()
+        public void ApplySorting()
         {
             var sortField = SortBox.SelectedItem?.ToString();
             var sortOrder = SortOrderBox.SelectedItem?.ToString();
@@ -351,7 +351,7 @@ namespace Vosmerka
             UpdateDisplay();
         }
 
-        private void UpdateDisplay()
+        public void UpdateDisplay()
         {
             products.Clear();
             var pageProducts = filteredProducts
