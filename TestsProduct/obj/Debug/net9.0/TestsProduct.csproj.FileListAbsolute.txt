@@ -1,0 +1,8 @@
+C:\Users\IVAN\RiderProjects\Kursovaya\TestsProduct\bin\Debug\net9.0\CoverletSourceRootsMapping_TestsProduct
+C:\Users\IVAN\RiderProjects\Kursovaya\TestsProduct\obj\Debug\net9.0\TestsProduct.csproj.AssemblyReference.cache
+C:\Users\IVAN\RiderProjects\Kursovaya\TestsProduct\obj\Debug\net9.0\Avalonia\Resources.Inputs.cache
+C:\Users\IVAN\RiderProjects\Kursovaya\TestsProduct\obj\Debug\net9.0\TestsProduct.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\IVAN\RiderProjects\Kursovaya\TestsProduct\obj\Debug\net9.0\TestsProduct.AssemblyInfoInputs.cache
+C:\Users\IVAN\RiderProjects\Kursovaya\TestsProduct\obj\Debug\net9.0\TestsProduct.AssemblyInfo.cs
+C:\Users\IVAN\RiderProjects\Kursovaya\TestsProduct\obj\Debug\net9.0\TestsProduct.csproj.CoreCompileInputs.cache
+C:\Users\IVAN\RiderProjects\Kursovaya\TestsProduct\obj\Debug\net9.0\TestsProduct.sourcelink.json
