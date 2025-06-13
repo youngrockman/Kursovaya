@@ -1,117 +1,88 @@
 ﻿<Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:Vosmerka"
         x:Class="Vosmerka.ProductEditWindow"
         Title="Редактирование продукции"
-        x:CompileBindings="False"
         Icon="/Assets/vosmerka.ico"
+        x:CompileBindings="False"
         Width="600"
-        Height="700">
+        SizeToContent="Height">
 
-    <Grid Margin="15">
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="*"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="*"/>
-            <RowDefinition Height="Auto"/>
-        </Grid.RowDefinitions>
+    <ScrollViewer>
+        <StackPanel Margin="15" Spacing="10">
 
-      
-        <TextBlock Grid.Row="0" Text="Артикул:" Margin="0,0,0,5"/>
-        <TextBox Grid.Row="1" x:Name="ArticleNumberBox" Margin="0,0,0,10" TextInput="ArticleNumber_TextInput"/>
+            <TextBlock Text="Артикул:"/>
+            <TextBox x:Name="ArticleNumberBox" TextInput="ArticleNumber_TextInput"/>
 
-        <TextBlock Grid.Row="2" Text="Наименование:" Margin="0,0,0,5"/>
-        <TextBox Grid.Row="3" x:Name="TitleBox" Margin="0,0,0,10"/>
+            <TextBlock Text="Наименование:"/>
+            <TextBox x:Name="TitleBox"/>
 
-        
-        <TextBlock Grid.Row="4" Text="Тип продукта:" Margin="0,0,0,5"/>
-        <ComboBox Grid.Row="5" x:Name="ProductTypeBox" Margin="0,0,0,10"/>
+            <TextBlock Text="Тип продукта:"/>
+            <ComboBox x:Name="ProductTypeBox"/>
 
-        
-        <TextBlock Grid.Row="6" Text="Изображение:" Margin="0,0,0,5"/>
-        <StackPanel Grid.Row="7" Orientation="Horizontal" Spacing="10" Margin="0,0,0,10">
-            <Image x:Name="ProductImage" Width="100" Height="100" Stretch="Uniform"/>
-            <Button Content="Выбрать изображение" Click="SelectImage_Click"/>
+            <TextBlock Text="Изображение:"/>
+            <StackPanel Orientation="Horizontal" Spacing="10">
+                <Image x:Name="ProductImage" Width="100" Height="100" Stretch="Uniform"/>
+                <Button Content="Выбрать изображение" Click="SelectImage_Click"/>
+            </StackPanel>
+
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+
+                <StackPanel Grid.Row="0" Grid.Column="0">
+                    <TextBlock Text="Количество человек:"/>
+                    <NumericUpDown x:Name="PersonCountBox" Minimum="1" Increment="1" FormatString="0"/>
+                </StackPanel>
+
+                <StackPanel Grid.Row="0" Grid.Column="1">
+                    <TextBlock Text="Номер цеха:"/>
+                    <NumericUpDown x:Name="WorkshopNumberBox" Minimum="0" Increment="1" FormatString="0"/>
+                </StackPanel>
+
+                <StackPanel Grid.Row="1" Grid.Column="0">
+                    <TextBlock Text="Минимальная стоимость:"/>
+                    <NumericUpDown x:Name="MinCostBox" Minimum="0" FormatString="F2"/>
+                </StackPanel>
+
+                <StackPanel Grid.Row="1" Grid.Column="1">
+                    <TextBlock Text="Описание:"/>
+                    <TextBox x:Name="DescriptionBox" AcceptsReturn="True" TextWrapping="Wrap"/>
+                </StackPanel>
+            </Grid>
+
+            <TextBlock Text="Материалы:" Margin="0,10,0,0"/>
+            <StackPanel Orientation="Horizontal" Spacing="10">
+                <ComboBox x:Name="MaterialsComboBox" IsTextSearchEnabled="True" Width="250"/>
+                <Button Content="Добавить" Background="#A163F5" Click="AddMaterial_Click"/>
+            </StackPanel>
+
+            <ListBox x:Name="MaterialsListBox" ItemsSource="{Binding _productMaterials}" Margin="0,5,0,0">
+                <ListBox.ItemTemplate>
+                    <DataTemplate>
+                        <StackPanel Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
+                            <TextBlock Text="{Binding Material.Title}" Width="180"/>
+                            <TextBlock Text="{Binding Material.MaterialType.Title}" Width="120"/>
+                            <TextBlock Text="Кол-во:"/>
+                            <TextBox Width="60" Text="{Binding Count, Mode=TwoWay}" HorizontalAlignment="Left"/>
+                            <Button Content="✖" Background="#A163F5" Foreground="White" Margin="10,0,0,0"
+                                    Click="RemoveMaterial_Click"/>
+                        </StackPanel>
+                    </DataTemplate>
+                </ListBox.ItemTemplate>
+            </ListBox>
+
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="10" Margin="0,10,0,0">
+                <Button Content="Сохранить" Width="100" Click="Save_Click" Background="#A163F5"/>
+                <Button x:Name="DeleteButton" Content="Удалить" Width="100" Click="Delete_Click" 
+                        IsVisible="False" Background="#A163F5"/>
+                <Button Content="Отмена" Width="100" Click="Cancel_Click" Background="#A163F5"/>
+            </StackPanel>
         </StackPanel>
-
-        
-        <Grid Grid.Row="8">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="*"/>
-            </Grid.ColumnDefinitions>
-            <Grid.RowDefinitions>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-            </Grid.RowDefinitions>
-
-            <TextBlock Grid.Row="0" Grid.Column="0" Text="Количество человек:" Margin="0,0,0,5"/>
-            <NumericUpDown Grid.Row="1" Grid.Column="0" x:Name="PersonCountBox" Minimum="0" Margin="0,0,10,10" FormatString="0"/>
-
-            <TextBlock Grid.Row="0" Grid.Column="1" Text="Номер цеха:" Margin="0,0,0,5"/>
-            <NumericUpDown Grid.Row="1" Grid.Column="1" x:Name="WorkshopNumberBox" Minimum="0" Margin="10,0,0,10" FormatString="0"/>
-
-            <TextBlock Grid.Row="2" Grid.Column="0" Text="Минимальная стоимость:" Margin="0,0,0,5"/>
-            <NumericUpDown Grid.Row="3" Grid.Column="0" x:Name="MinCostBox" Minimum="0" FormatString="F2" Margin="0,0,10,10"/>
-
-            <TextBlock Grid.Row="2" Grid.Column="1" Text="Описание:" Margin="0,0,0,5"/>
-            <TextBox Grid.Row="3" Grid.Column="1" x:Name="DescriptionBox" AcceptsReturn="True"
-                     TextWrapping="Wrap" Margin="10,0,0,10"/>
-        </Grid>
-
-     
-        <TextBlock Grid.Row="9" Text="Материалы:" Margin="0,10,0,5"/>
-        <Grid Grid.Row="10">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="Auto"/>
-            </Grid.ColumnDefinitions>
-            <ComboBox Grid.Column="0" x:Name="MaterialsComboBox" IsTextSearchEnabled="True"/>
-            <Button Grid.Column="1" Content="Добавить" Background="#A163F5" Margin="10,0,0,0" Click="AddMaterial_Click"/>
-        </Grid>
-
-       
-        <DataGrid Grid.Row="11" x:Name="MaterialsGrid"
-                  AutoGenerateColumns="False"
-                  HeadersVisibility="Column"
-                  GridLinesVisibility="Horizontal"
-                  BorderThickness="1"
-                  BorderBrush="Gray"
-                  RowBackground="White"
-                  FontSize="14"
-                  Margin="0,10,0,10"
-                  CellEditEnding="MaterialsGrid_CellEditEnding">
-            <DataGrid.Columns>
-                <DataGridTextColumn Header="Материал" Binding="{Binding Material.Title}" Width="*" IsReadOnly="True"/>
-                <DataGridTextColumn Header="Количество" Binding="{Binding Count, Mode=TwoWay}" Width="100" IsReadOnly="False"/>
-                <DataGridTemplateColumn Header="Удалить" Width="80">
-                    <DataGridTemplateColumn.CellTemplate>
-                        <DataTemplate>
-                            <Button Content="✖" Background="#A163F5" Foreground="White" Click="RemoveMaterial_Click"/>
-                        </DataTemplate>
-                    </DataGridTemplateColumn.CellTemplate>
-                </DataGridTemplateColumn>
-            </DataGrid.Columns>
-        </DataGrid>
-
-       
-        <StackPanel Grid.Row="12" Orientation="Horizontal" HorizontalAlignment="Right" Spacing="10">
-            <Button Content="Сохранить" Width="100" Click="Save_Click" Background="#A163F5"/>
-            <Button x:Name="DeleteButton" Content="Удалить" Width="100" Click="Delete_Click" IsVisible="False" Background="#A163F5"/>
-            <Button Content="Отмена" Width="100" Click="Cancel_Click" Background="#A163F5"/>
-        </StackPanel>
-    </Grid>
+    </ScrollViewer>
 </Window>
