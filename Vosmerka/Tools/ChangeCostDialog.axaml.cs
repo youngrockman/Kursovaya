@@ -112,7 +112,7 @@ namespace Vosmerka
                         if (!_costTextBox.Value.HasValue || _costTextBox.Value.Value < 0)
                         {
                             await MessageBox.Show(this, "Стоимость не может быть отрицательной", "Ошибка");
-                            _costTextBox.Value = NewCost; // Restore original value
+                            _costTextBox.Value = NewCost; 
                             return;
                         }
                         NewCost = _costTextBox.Value.Value;
