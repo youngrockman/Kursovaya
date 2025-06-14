@@ -1,23 +1,38 @@
-﻿using System;
-using System.Threading.Tasks;
-using Avalonia;
+﻿using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
 using Avalonia.Media;
 using Avalonia.Media.Imaging;
 using Avalonia.Platform;
+using System;
+using System.Threading.Tasks;
 
 namespace Vosmerka
 {
     public class MessageBox : Window
     {
-        public MessageBox(string title, string message)
+        public enum MessageBoxButtons
         {
-            InitializeComponent(title, message);
+            OK,
+            YesNo
+        }
+
+        public enum MessageBoxResult
+        {
+            OK,
+            Yes,
+            No
+        }
+
+        public MessageBoxResult Result { get; private set; }
+
+        public MessageBox(string title, string message, MessageBoxButtons buttons = MessageBoxButtons.OK)
+        {
+            InitializeComponent(title, message, buttons);
             this.Icon = LoadIcon();
         }
 
-        private void InitializeComponent(string title, string message)
+        private void InitializeComponent(string title, string message, MessageBoxButtons buttons)
         {
             this.Title = title;
 
@@ -28,19 +43,64 @@ namespace Vosmerka
                 TextWrapping = Avalonia.Media.TextWrapping.Wrap
             };
 
-            var button = new Button
+            var buttonPanel = new StackPanel
             {
-                Content = "OK",
-                Width = 100,
-                Margin = new Thickness(10),
-                Background = new SolidColorBrush(Color.Parse("#A163F5"))
+                Orientation = Avalonia.Layout.Orientation.Horizontal,
+                HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Center,
+                Spacing = 10
             };
 
-            button.Click += (s, e) => this.Close();
+            if (buttons == MessageBoxButtons.OK)
+            {
+                var okButton = new Button
+                {
+                    Content = "OK",
+                    Width = 100,
+                    Margin = new Thickness(10),
+                    Background = new SolidColorBrush(Color.Parse("#A163F5"))
+                };
+                okButton.Click += (s, e) => 
+                {
+                    Result = MessageBoxResult.OK;
+                    this.Close();
+                };
+                buttonPanel.Children.Add(okButton);
+            }
+            else if (buttons == MessageBoxButtons.YesNo)
+            {
+                var yesButton = new Button
+                {
+                    Content = "Да",
+                    Width = 100,
+                    Margin = new Thickness(10),
+                    Background = new SolidColorBrush(Color.Parse("#A163F5"))
+                };
+                yesButton.Click += (s, e) => 
+                {
+                    Result = MessageBoxResult.Yes;
+                    this.Close();
+                };
+
+                var noButton = new Button
+                {
+                    Content = "Нет",
+                    Width = 100,
+                    Margin = new Thickness(10),
+                    Background = new SolidColorBrush(Color.Parse("#A163F5"))
+                };
+                noButton.Click += (s, e) => 
+                {
+                    Result = MessageBoxResult.No;
+                    this.Close();
+                };
+
+                buttonPanel.Children.Add(yesButton);
+                buttonPanel.Children.Add(noButton);
+            }
 
             var stackPanel = new StackPanel();
             stackPanel.Children.Add(textBlock);
-            stackPanel.Children.Add(button);
+            stackPanel.Children.Add(buttonPanel);
 
             this.Content = stackPanel;
             this.Width = 300;
@@ -67,6 +127,13 @@ namespace Vosmerka
         {
             var msgBox = new MessageBox(title, message);
             await msgBox.ShowDialog(parent);
+        }
+
+        public static async Task<MessageBoxResult> ShowWithResult(Window parent, string message, string title, MessageBoxButtons buttons)
+        {
+            var msgBox = new MessageBox(title, message, buttons);
+            await msgBox.ShowDialog(parent);
+            return msgBox.Result;
         }
     }
 }

@@ -387,6 +387,17 @@ namespace Vosmerka
         private async void Delete_Click(object sender, RoutedEventArgs e)
         {
             if (_product == null) return;
+            
+            var result = await MessageBox.ShowWithResult(
+                this,
+                "Вы действительно хотите удалить этот продукт?",
+                "Подтверждение удаления",
+                MessageBox.MessageBoxButtons.YesNo);
+
+            if (result != MessageBox.MessageBoxResult.Yes)
+            {
+                return;
+            }
 
             try
             {
