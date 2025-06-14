@@ -29,11 +29,12 @@
     </ItemGroup>
 
     <ItemGroup>
-      <Compile Update="ChangeCostDialog.axaml.cs">
-        <DependentUpon>ChangeCostDialog.axaml.axaml</DependentUpon>
-      </Compile>
       <Compile Update="ProductEditWindow.cs">
         <DependentUpon>ProductEditWindow.axaml</DependentUpon>
+      </Compile>
+      <Compile Update="Tools\ChangeCostDialog.axaml.cs">
+        <DependentUpon>ChangeCostDialog.axaml</DependentUpon>
+        <SubType>Code</SubType>
       </Compile>
     </ItemGroup>
 

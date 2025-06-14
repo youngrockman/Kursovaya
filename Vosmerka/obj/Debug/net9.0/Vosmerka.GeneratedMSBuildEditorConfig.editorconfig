@@ -32,9 +32,6 @@ build_property.EnableCodeStyleSeverity =
 [C:/Users/IVAN/RiderProjects/Kursovaya/Vosmerka/App.axaml]
 build_metadata.AdditionalFiles.SourceItemGroup = AvaloniaXaml
 
-[C:/Users/IVAN/RiderProjects/Kursovaya/Vosmerka/ChangeCostDialog.axaml]
-build_metadata.AdditionalFiles.SourceItemGroup = AvaloniaXaml
-
 [C:/Users/IVAN/RiderProjects/Kursovaya/Vosmerka/MainWindow.axaml]
 build_metadata.AdditionalFiles.SourceItemGroup = AvaloniaXaml
 
