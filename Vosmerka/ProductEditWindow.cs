@@ -179,12 +179,32 @@ namespace Vosmerka
                     return;
                 }
 
-                var dialog = new NumericInputDialog("Введите количество:");
+                // Проверяем доступное количество материала
+                using var context = new User6Context();
+                var totalUsedCount = await context.ProductMaterials
+                    .Where(pm => pm.MaterialId == selectedMaterial.Id)
+                    .SumAsync(pm => pm.Count ?? 0);
+
+                var availableCount = (selectedMaterial.CountInStock ?? 0) - totalUsedCount;
+
+                if (availableCount <= 0)
+                {
+                    await MessageBox.Show(this, "Нет доступного количества материала на складе", "Ошибка");
+                    return;
+                }
+
+                var dialog = new NumericInputDialog($"Введите количество (доступно: {availableCount}):");
                 var quantity = await dialog.ShowDialog(this);
 
                 if (!quantity.HasValue || quantity <= 0)
                 {
                     await MessageBox.Show(this, "Введите число ≥1", "Ошибка");
+                    return;
+                }
+
+                if (quantity > availableCount)
+                {
+                    await MessageBox.Show(this, $"Количество не может превышать доступное ({availableCount})", "Ошибка");
                     return;
                 }
 
